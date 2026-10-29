@@ -1,9 +1,12 @@
 services:
   crawler:
     build:
-      context: .
+      # Same pattern as the backend/frontend: Docker fetches the Git context.
+      # Commit and push Dockerfile, requirements and scripts before deployment.
+      context: "${GIT_REPOSITORY:-https://github.com/duzqiu/scrapy_news_crawler.git}#${GIT_REF:-main}"
       dockerfile: Dockerfile
     image: scrapy-news-crawler:latest
+    pull_policy: build
     init: true
     restart: "no"
     env_file:

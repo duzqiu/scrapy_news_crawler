@@ -30,21 +30,23 @@ vi .env
 
 ## 3. 手动构建并启动爬虫
 
-每次代码有更新后，在项目目录执行：
+需要拉取 GitHub 最新代码并执行时，在项目目录执行：
 
 ```bash
 cd /opt/scrapy_news_crawler
+docker compose build --pull --no-cache crawler
+docker compose run --rm --no-deps crawler
+```
+
+Compose 会把 `.env` 中的 `GIT_REPOSITORY` 和 `GIT_REF` 作为远程 Git 构建上下文，直接从 GitHub 获取 Dockerfile、requirements 和爬虫源码，再构建镜像。容器启动后，`run-all-spiders.sh` 会自动发现并按顺序执行全部 Spider，全部完成后容器退出。
+
+也可以使用一条命令构建并运行：
+
+```bash
 docker compose run --rm --build crawler
 ```
 
-Compose 会构建最新本地代码并启动容器。容器内的 `run-all-spiders.sh` 会自动发现并按顺序执行全部 Spider，全部完成后容器退出。
-
-也可以分两步执行：
-
-```bash
-docker compose build --pull crawler
-docker compose run --rm --no-deps crawler
-```
+如果使用固定分支，构建时会获取该分支当前提交；生产环境也可以把 `GIT_REF` 改成具体 tag 或 commit，以保证版本可复现。
 
 查看已构建镜像：
 

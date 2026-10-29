@@ -1,4 +1,7 @@
-FROM python:3.12-slim
+# The Compose file uses the GitHub repository as the build context.
+# Docker therefore receives the latest repository files directly and does not
+# need Git or a separate source stage inside the image.
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
