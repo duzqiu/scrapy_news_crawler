@@ -1,0 +1,15 @@
+services:
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: scrapy-news-crawler:latest
+    init: true
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SCRAPY_SETTINGS_MODULE: scrapy_news_crawler.settings
+    command: ["/app/run-all-spiders.sh"]
+    stop_grace_period: 30s

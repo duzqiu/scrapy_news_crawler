@@ -1,0 +1,93 @@
+# Docker 爬虫部署
+
+本项目使用 Docker Compose 手动启动一次性爬虫任务：
+
+```text
+docker compose run --rm crawler -> run-all-spiders.sh -> 执行全部 Spider
+```
+
+部署容器会自动发现并依次执行 `spiders/` 目录下的全部 Scrapy Spider。抓取到的 Item 通过 `PostgreSQLRedisPipeline` 写入 FastAPI 后台的 `article_official_info` 表，并用 Redis 按文章 URL 去重。
+
+## 1. 服务器准备
+
+安装 Docker Engine 和 Compose Plugin，然后将项目代码放到服务器上：
+
+```bash
+cd /opt
+# 可以通过 git clone、上传压缩包或其他方式取得项目
+cd /opt/scrapy_news_crawler
+```
+
+## 2. 配置密钥
+
+```bash
+cp .env.example .env
+chmod 600 .env
+vi .env
+```
+
+`.env` 不会被提交到 Git。请在 `.env` 中配置 PostgreSQL 和 Redis；`.env.example` 已提供 `192.168.31.201` 的示例地址。密码仅为示例，生产环境请替换。
+
+## 3. 手动构建并启动爬虫
+
+每次代码有更新后，在项目目录执行：
+
+```bash
+cd /opt/scrapy_news_crawler
+docker compose run --rm --build crawler
+```
+
+Compose 会构建最新本地代码并启动容器。容器内的 `run-all-spiders.sh` 会自动发现并按顺序执行全部 Spider，全部完成后容器退出。
+
+也可以分两步执行：
+
+```bash
+docker compose build --pull crawler
+docker compose run --rm --no-deps crawler
+```
+
+查看已构建镜像：
+
+```bash
+docker image ls scrapy-news-crawler
+```
+
+## 4. 查看日志和清理
+
+```bash
+docker compose logs -f crawler
+docker ps -a --filter name=scrapy-news-crawler
+docker image prune
+```
+
+容器默认会通过 `run-all-spiders.sh` 执行 `scrapy list` 返回的全部 Spider，并按顺序逐个运行。新增 Spider 文件到 `scrapy_news_crawler/spiders/` 后，无需修改 Docker 或 Compose 配置。
+
+如果需要单独调试某个 Spider，可以覆盖容器命令：
+
+```bash
+docker compose run --rm --no-deps crawler scrapy crawl chinanews -a limit=3
+```
+
+## 5. PostgreSQL 和 Redis 配置
+
+默认配置如下：
+
+```dotenv
+PG_HOST=192.168.31.201
+PG_PORT=5452
+PG_DATABASE=admin_db
+PG_USER=postgres
+PG_PASSWORD=123456
+REDIS_URL=redis://192.168.31.201:6379/0
+```
+
+Pipeline 写入后台的 `article_official_info` 表，初始审核状态为 `pending`，`member_id` 为空，`publisher_snapshot` 使用新闻来源。Redis 使用文章 URL 的 SHA-256 作为去重键，默认保留 30 天；即使 Redis key 过期，也会再次检查 PostgreSQL 中的 URL。
+
+可在运行前检查网络连通性：
+
+```bash
+nc -vz 192.168.31.201 5452
+redis-cli -h 192.168.31.201 -p 6379 ping
+```
+
+本地没有 PostgreSQL 和 Redis，因此本次只进行了 Python 编译和 Shell 静态检查，没有实际连接或写入远程服务。

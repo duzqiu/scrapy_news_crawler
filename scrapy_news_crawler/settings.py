@@ -60,11 +60,11 @@ ROBOTSTXT_OBEY = True
 #    "scrapy.extensions.telnet.TelnetConsole": None,
 #}
 
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "scrapy_news_crawler.pipelines.ScrapyNewsCrawlerPipeline": 300,
-#}
+# Configure item pipelines. Every discovered spider writes articles to
+# PostgreSQL and uses Redis URL de-duplication unless it overrides this setting.
+ITEM_PIPELINES = {
+    "scrapy_news_crawler.pipelines.PostgreSQLRedisPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
