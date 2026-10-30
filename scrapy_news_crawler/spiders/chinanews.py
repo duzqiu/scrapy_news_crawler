@@ -17,21 +17,6 @@ class ChinanewsRssSpider(scrapy.Spider):
         "https://www.chinanews.com.cn/rss/importnews.xml",
     ]
 
-    custom_settings = {
-        "USER_AGENT": "NewsCollector/0.1 (RSS preview)",
-        "ITEM_PIPELINES": {
-            "scrapy_news_crawler.pipelines.PostgreSQLRedisPipeline": 300,
-        },
-        "TELNETCONSOLE_ENABLED": False,
-        "RETRY_TIMES": 1,
-        "RETRY_HTTP_CODES": [500, 502, 503, 504],
-        "DOWNLOAD_TIMEOUT": 30,
-        "DOWNLOAD_DELAY": 3,
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 1,
-        "ROBOTSTXT_OBEY": True,
-        "LOG_LEVEL": "INFO",
-    }
-
     def __init__(self, limit=0, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # 默认不限制数量，抓取 RSS 当前返回的全部条目。
