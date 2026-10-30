@@ -15,6 +15,10 @@ from psycopg.types.json import Jsonb
 from scrapy.exceptions import DropItem
 
 
+PUBLISHER_MEMBER_ID = 7
+PUBLISHER_NAME = "灞波儿奔"
+
+
 class PostgreSQLRedisPipeline:
     """Write ``ScrapyNewsCrawlerItem`` to ``article_official_info``.
 
@@ -84,13 +88,14 @@ class PostgreSQLRedisPipeline:
                         content, image_urls, source, published_at, crawled_at,
                         board, rank, status, view_count, created_at, updated_at
                     ) VALUES (
-                        %s, NULL, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, 'pending', 0, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, 'approved', 0, %s, %s
                     )
                     """,
                     (
                         self._article_no(cursor),
-                        str(adapter.get("source") or "中新网")[:50],
+                        PUBLISHER_MEMBER_ID,
+                        PUBLISHER_NAME,
                         url,
                         str(adapter.get("title") or "").strip(),
                         str(adapter.get("content") or ""),

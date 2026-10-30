@@ -83,7 +83,7 @@ PG_PASSWORD=123456
 REDIS_URL=redis://192.168.31.201:6379/0
 ```
 
-Pipeline 写入后台的 `article_official_info` 表，初始审核状态为 `pending`，`member_id` 为空，`publisher_snapshot` 使用新闻来源。Redis 使用文章 URL 的 SHA-256 作为去重键，默认保留 30 天；即使 Redis key 过期，也会再次检查 PostgreSQL 中的 URL。
+Pipeline 写入后台的 `article_official_info` 表，初始审核状态为 `approved`（已通过），固定使用 `member_id=7`、`publisher_snapshot=灞波儿奔`。请确保后台 PostgreSQL 的 `member_account_info` 中存在主键为 7 的会员，否则外键约束会拒绝插入。Redis 使用文章 URL 的 SHA-256 作为去重键，默认保留 30 天；即使 Redis key 过期，也会再次检查 PostgreSQL 中的 URL。
 
 可在运行前检查网络连通性：
 
