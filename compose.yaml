@@ -8,11 +8,11 @@ services:
     image: scrapy-news-crawler:latest
     pull_policy: build
     init: true
-    restart: "no"
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       TZ: ${TZ:-Asia/Shanghai}
       SCRAPY_SETTINGS_MODULE: scrapy_news_crawler.settings
-    command: ["/app/run-all-spiders.sh"]
+    command: ["/app/run-scheduled-spiders.sh"]
     stop_grace_period: 30s

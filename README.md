@@ -30,21 +30,17 @@ vi .env
 
 ## 3. 手动构建并启动爬虫
 
-需要拉取 GitHub 最新代码并执行时，在项目目录执行：
+需要拉取 GitHub 最新代码并启动定时爬取服务时，在项目目录执行：
 
 ```bash
 cd /opt/scrapy_news_crawler
 docker compose build --pull --no-cache crawler
-docker compose run --rm --no-deps crawler
+docker compose up -d crawler
 ```
 
-Compose 会把 `.env` 中的 `GIT_REPOSITORY` 和 `GIT_REF` 作为远程 Git 构建上下文，直接从 GitHub 获取 Dockerfile、requirements 和爬虫源码，再构建镜像。容器启动后，`run-all-spiders.sh` 会自动发现并按顺序执行全部 Spider，全部完成后容器退出。
+Compose 会把 `.env` 中的 `GIT_REPOSITORY` 和 `GIT_REF` 作为远程 Git 构建上下文，直接从 GitHub 获取 Dockerfile、requirements 和爬虫源码，再构建镜像。容器启动后会立即执行一次全部 Spider，随后每次随机等待 2 到 4 小时，再执行下一轮。
 
-也可以使用一条命令构建并运行：
-
-```bash
-docker compose run --rm --build crawler
-```
+容器使用 `restart: unless-stopped`，爬虫服务会持续运行；手动停止前不会自动退出。
 
 如果使用固定分支，构建时会获取该分支当前提交；生产环境也可以把 `GIT_REF` 改成具体 tag 或 commit，以保证版本可复现。
 
@@ -62,7 +58,7 @@ docker ps -a --filter name=scrapy-news-crawler
 docker image prune
 ```
 
-容器默认会通过 `run-all-spiders.sh` 执行 `scrapy list` 返回的全部 Spider，并按顺序逐个运行。新增 Spider 文件到 `scrapy_news_crawler/spiders/` 后，无需修改 Docker 或 Compose 配置。
+容器默认会通过 `run-scheduled-spiders.sh` 启动定时循环；每轮调用 `run-all-spiders.sh`，执行 `scrapy list` 返回的全部 Spider，并按顺序逐个运行。新增 Spider 文件到 `scrapy_news_crawler/spiders/` 后，无需修改 Docker 或 Compose 配置。
 
 如果需要单独调试某个 Spider，可以覆盖容器命令：
 

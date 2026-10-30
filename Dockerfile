@@ -16,6 +16,7 @@ RUN python -m pip install --upgrade pip \
 COPY scrapy.cfg /app/scrapy.cfg
 COPY scrapy_news_crawler /app/scrapy_news_crawler
 COPY run-all-spiders.sh /app/run-all-spiders.sh
-RUN chmod +x /app/run-all-spiders.sh
+COPY run-scheduled-spiders.sh /app/run-scheduled-spiders.sh
+RUN chmod +x /app/run-all-spiders.sh /app/run-scheduled-spiders.sh
 
-CMD ["/app/run-all-spiders.sh"]
+CMD ["/app/run-scheduled-spiders.sh"]
