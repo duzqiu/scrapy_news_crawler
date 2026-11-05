@@ -2,7 +2,6 @@
 
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
-import json
 
 import scrapy
 
@@ -13,11 +12,6 @@ class XinhuaSpider(scrapy.Spider):
     name = "xinhua"
     allowed_domains = ["xinhuanet.com", "news.cn"]
     start_urls = ["https://www.xinhuanet.com/"]
-    # Preview only: do not write the hot-list records to PostgreSQL or Redis.
-    # custom_settings = {
-    #     "ITEM_PIPELINES": {},
-    # }
-
     def __init__(self, limit=0, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.limit = int(limit)
@@ -101,9 +95,6 @@ class XinhuaSpider(scrapy.Spider):
             board="要闻聚焦",
             rank=rank,
         )
-        # This Spider is currently a preview-only exception: print the full
-        # detail content and keep the Pipeline disabled, so nothing is stored.
-        print(json.dumps(dict(item), ensure_ascii=False, indent=2), flush=True)
         yield item
 
     @staticmethod

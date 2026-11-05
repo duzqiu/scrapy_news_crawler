@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import secrets
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import psycopg
@@ -19,6 +21,28 @@ PUBLISHER_MEMBER_ID = 7
 PUBLISHER_NAME = "灞波儿奔"
 
 
+def _load_project_env() -> None:
+    """Load root .env for direct Scrapy runs; process env wins."""
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("\\\"'"))
+
+
+_load_project_env()
+
+
+def is_persistence_enabled() -> bool:
+    """Return the global Pipeline switch; default is database persistence."""
+    value = os.getenv("SCRAPY_PERSISTENCE_ENABLED", "false")
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class PostgreSQLRedisPipeline:
     """Write ``ScrapyNewsCrawlerItem`` to ``article_official_info``.
 
@@ -29,6 +53,7 @@ class PostgreSQLRedisPipeline:
     def __init__(self) -> None:
         self.pg_conn: psycopg.Connection | None = None
         self.redis_client: redis.Redis | None = None
+        self.persistence_enabled = is_persistence_enabled()
         self.redis_ttl = int(os.getenv("REDIS_DEDUPE_TTL", "2592000"))
 
     @classmethod
@@ -36,6 +61,10 @@ class PostgreSQLRedisPipeline:
         return cls()
 
     def open_spider(self, spider) -> None:
+        if not self.persistence_enabled:
+            spider.logger.info("Pipeline disabled: items will only be printed")
+            return
+
         self.pg_conn = psycopg.connect(
             host=os.getenv("PG_HOST", "192.168.31.201"),
             port=int(os.getenv("PG_PORT", "5452")),
@@ -61,6 +90,10 @@ class PostgreSQLRedisPipeline:
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
+        if not self.persistence_enabled:
+            print(json.dumps(dict(adapter), ensure_ascii=False, indent=2, default=str), flush=True)
+            return item
+
         url = str(adapter.get("url") or "").strip()
         if not url:
             raise DropItem("missing article URL")

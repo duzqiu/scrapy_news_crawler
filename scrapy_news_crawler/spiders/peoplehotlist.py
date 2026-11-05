@@ -13,11 +13,6 @@ class PeopleHotlistSpider(scrapy.Spider):
     allowed_domains = ["peopleapp.com"]
     start_urls = ["https://www.peopleapp.com/atv/peoplehotlist/2"]
 
-    # Preview only: do not write the hot-list records to PostgreSQL or Redis.
-    # custom_settings = {
-    #     "ITEM_PIPELINES": {},
-    # }
-
     def parse(self, response):
         payload_text = response.css("#__NUXT_DATA__::text").get()
         if not payload_text:
@@ -105,7 +100,6 @@ class PeopleHotlistSpider(scrapy.Spider):
             board="人民热榜",
             rank=rank,
         )
-        print(json.dumps(dict(item), ensure_ascii=False, indent=2), flush=True)
         yield item
 
     def extract_content(self, content_html):

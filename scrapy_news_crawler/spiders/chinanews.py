@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import scrapy
@@ -117,8 +116,6 @@ class ChinanewsRssSpider(scrapy.Spider):
             rank=None,
         )
 
-        # 终端打印，便于先确认字段和解析结果；当前未连接数据库。
-        print(json.dumps(dict(item), ensure_ascii=False, indent=2))
         yield item
 
     @staticmethod
